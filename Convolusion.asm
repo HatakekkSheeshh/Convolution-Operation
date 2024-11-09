@@ -120,142 +120,142 @@ next_kernel_char:
     addi $s4, $s4, 1
     j read_kernel_loop
 #########################################################################################################
-cvt_string_float:																						#																				
-	seq $t2, $t1, 45					# Check if sign of the character is negtive or positive			# 
-																										#
-	# IEEE 754 format to stack and use lwc1																#
-    lui $t6, 0x0000 					# we cannot directly set a register to float					#
-	addi $sp, $sp, -4					# create space in stack											#
-	sw $t6, 0($sp)																						#
-	lwc1 $f0, 0($sp)					# initialize f0 with 0.0										#
-	addi $sp, $sp, 4					# pop the stack												    #
-                                                                                                        #
-	lui $t6, 0x4120																						#
-	addi $sp, $sp, -4																					#
-	sw $t6, 0($sp)																						#
-	lwc1 $f1, 0($sp)					# initialize f1 with 10.0, float for whole number				#
-    addi $sp, $sp, 4                                                                                    #
-                                                                                                        #
-	lui $t6, 0x4120																						#
-	addi $sp, $sp, -4																					#
-	sw $t6, 0($sp)																						#
-	lwc1 $f2, 0($sp)					# initialize f1 with 10.0, float for decimal part				#
-	addi $sp, $sp, 4																					#
-                                                                                                        #
-	beqz $t2, before_point 				# if the number is positive skip below line						#
-	addi $s4, $s4, 1																					#
-	before_point:																						#
-		lb $t1, 0($s4) 					# load current character										#
-		beq $t1, 0, store_float			# NULL															#
-		beq $t1, 10, store_float		# LINE FEED														#
-		beq $t1, 13, store_float		# CARRIAGE RETURN												#
-		beq $t1, 32, store_float		# SPACE															#
-		beq $t1, '.', after_point		# handle decimal after point									#
-																										#
-		sub $t1, $t1, '0'				# Convert ASCII to integer										#
-		addi $sp, $sp, -4																				#
-		sw $t1, 0($sp)																					#
-		lwc1 $f3, 0($sp) 				# Change integer to float 										#
-		addi $sp, $sp, 4				# pop															#
-		cvt.s.w $f3, $f3				# confirmly get the float from word								#
-																										#
-		mul.s $f0, $f0, $f1				# multiply with 10(shift left)									#
-		add.s $f0, $f0, $f3 			# add new digit													#
-																										#
-		addi $s4, $s4, 1				# move to new character											#
-		j before_point																					#
+cvt_string_float:																																										
+	seq $t2, $t1, 45					# Check if sign of the character is negtive or positive			
+																										
+	# IEEE 754 format to stack and use lwc1																
+    lui $t6, 0x0000 					# we cannot directly set a register to float					
+	addi $sp, $sp, -4					# create space in stack											
+	sw $t6, 0($sp)																						
+	lwc1 $f0, 0($sp)					# initialize f0 with 0.0										
+	addi $sp, $sp, 4					# pop the stack												    
+                                                                                                        
+	lui $t6, 0x4120																						
+	addi $sp, $sp, -4																					
+	sw $t6, 0($sp)																						
+	lwc1 $f1, 0($sp)					# initialize f1 with 10.0, float for whole number				
+    addi $sp, $sp, 4                                                                                    
+                                                                                                        
+	lui $t6, 0x4120																						
+	addi $sp, $sp, -4																					
+	sw $t6, 0($sp)																						
+	lwc1 $f2, 0($sp)					# initialize f1 with 10.0, float for decimal part				
+	addi $sp, $sp, 4																					
+                                                                                                        
+	beqz $t2, before_point 				# if the number is positive skip below line						
+	addi $s4, $s4, 1																					
+	before_point:																						
+		lb $t1, 0($s4) 					# load current character										
+		beq $t1, 0, store_float			# NULL															
+		beq $t1, 10, store_float		# LINE FEED														
+		beq $t1, 13, store_float		# CARRIAGE RETURN												
+		beq $t1, 32, store_float		# SPACE															
+		beq $t1, '.', after_point		# handle decimal after point									
+																										
+		sub $t1, $t1, '0'				# Convert ASCII to integer										
+		addi $sp, $sp, -4																				
+		sw $t1, 0($sp)																					
+		lwc1 $f3, 0($sp) 				# Change integer to float 										
+		addi $sp, $sp, 4				# pop															
+		cvt.s.w $f3, $f3				# confirmly get the float from word							
+																										
+		mul.s $f0, $f0, $f1				# multiply with 10(shift left)									
+		add.s $f0, $f0, $f3 			# add new digit													
+																										
+		addi $s4, $s4, 1				# move to new character											
+		j before_point																					
 #########################################################################################################	
-	after_point:																						#																					
-		addi $s4, $s4, 1				# move to new character											#
-        j handle_point																					#
-	handle_point:																						#
-		lb $t1, 0($s4)					# load current character										#
-		beq $t1, 0, store_float			# NULL															#
-		beq $t1, 10, store_float		# LINE FEED														#
-		beq $t1, 13, store_float		# CARRIAGE RETURN												#
-		beq $t1, 32, store_float		# SPACE															#
-																										#
-		sub $t1, $t1, '0'				# Convert ASCII to integer										#
-		add $sp, $sp, -4																				#
-		sw $t1, 0($sp)																					#
-		lwc1 $f3, 0($sp)				# Convert integer to float										#
-		addi $sp, $sp, 4				# pop															#
-		cvt.s.w $f3, $f3				# confirmly get the float from word								#
-																										#
-		div.s $f3, $f3, $f1				# shift right to make number after point						#
-		mul.s $f1, $f1, $f2				# multiply with 10												#
-		add.s $f0, $f0, $f3				# add new digit													#
-																										#
-		addi $s4, $s4, 1				# move to new character											#
-		j handle_point																					#
+	after_point:																																										
+		addi $s4, $s4, 1				# move to new character											
+        j handle_point																					
+	handle_point:																						
+		lb $t1, 0($s4)					# load current character										
+		beq $t1, 0, store_float			# NULL															
+		beq $t1, 10, store_float		# LINE FEED														
+		beq $t1, 13, store_float		# CARRIAGE RETURN												
+		beq $t1, 32, store_float		# SPACE															
+																										
+		sub $t1, $t1, '0'				# Convert ASCII to integer										
+		add $sp, $sp, -4																				
+		sw $t1, 0($sp)																					
+		lwc1 $f3, 0($sp)				# Convert integer to float										
+		addi $sp, $sp, 4				# pop															
+		cvt.s.w $f3, $f3				# confirmly get the float from word								
+																										
+		div.s $f3, $f3, $f1				# shift right to make number after point						
+		mul.s $f1, $f1, $f2				# multiply with 10												
+		add.s $f0, $f0, $f3				# add new digit													
+																										
+		addi $s4, $s4, 1				# move to new character											
+		j handle_point																					
 #########################################################################################################
-	# store the result in image/kernel matrix															#
-	store_float:																						#
-		beq $t2, 1, sign_float			# float < 0														#
-		beq $t3, 0, store_image			# mode 0 -> image												#
-		beq $t3, 1, store_kernel 		# mode 1 -> kernel												#
-																										#
-	sign_float:																							#
-		lui $t4, 0x0000																					#
-		addi $sp, $sp, -4				# create space in stack										    #
-		sw $t4, 0($sp)																					#
-		lwc1 $f1, 0($sp)				# initialize f0 with 0.0									    #
-		add $sp, $sp, 4					# pop the stack												    #
-		sub.s $f0, $f1, $f0				# f0 = 0 - f0												    #
-		li $t2, 0 						# reset t1 to 0												    #
-		j store_float																					#
-																										#
-        store_image:																					#
-            swc1 $f0, 0($s0)																			#
-            addi $s0, $s0, 4			# move to next word										        #
-            j next_char																					#
-        store_kernel:																					#
-            swc1 $f0, 0($s1)																			#
-            addi $s1, $s1, 4			# move to next word										        #
-            j next_char																					#
-	next_char:																							#
-        addi $s4, $s4, 1																				#
-		beq $t3, 0, read_image_loop																		#
-		beq $t3, 1, read_kernel_loop																	#
-#########################################################################################################                                                                                                    #
-start_build_padded_image:                                                                               #
-	la $s0, image                       # Load image adress                                             #
-	la $s2, padded	                    # Load padded adress                                            #
-                                                                                                        #
-	la $t0, image_size		            # Load N                                                        #
-	lw $t0, 0($t0)                                                                                      #
-                                                                                                        #
-	la $t2, value_padding		        # Load p                                                        #
-	lw $t2, 0($t2)                                                                                      #
-                                                                                                        #
-	mul $t3, $t2, 2		                # t3 = 2p                                                       #
-	add $t3, $t0, $t3	                # t3 = N + 2*p                                                  #
-	mul $t3, $t3, $t2	                # t3 = (N + 2*p)*p                                              #
-	add $t3, $t3, $t2	                # t3 = (N + 2*p)*p+p                                            #
-                                                                                                        #
-	mul $t3, $t3, 4		                # t3 = t3 * 4 bytes                                             #
-	add $s2, $s2, $t3	                # move the pointers to the begin to copy                        #
-                                                                                                        #
-	li $t4, 0		                    # Outer loop counter                                            #
-	outside_loop:                                                                                       #
-		beq $t4, $t0, exit_outer    # if t4 == N -> end                                                 #
-		li $t5, 0	                    # Inner loop counter                                            #
-		inner_loop:                                                                                     #
-			beq $t5, $t0, exit_inner                                                                    #
-			lwc1 $f4, 0($s0)                                                                            #
-			swc1 $f4, 0($s2)                                                                            #                                                                                 
-			addi $s0, $s0, 4                                                                            #
-			addi $s2, $s2, 4                                                                            #
-			addi $t5, $t5, 1                                                                            #
-			j inner_loop                                                                                #
-		exit_inner:                                                                                     #
-			move $t6, $t2                                                                               #
-			mul $t6, $t6, 8                                                                             #
-			add $s2, $s2, $t6                                                                           #
-		addi $t4, $t4, 1                                                                                #
-		j outside_loop                                                                                  #
-	exit_outer:                                                                                         #
-        j start_build_convolved_matrix                                                                  #
+	# store the result in image/kernel matrix															
+	store_float:																						
+		beq $t2, 1, sign_float			# float < 0														
+		beq $t3, 0, store_image			# mode 0 -> image												
+		beq $t3, 1, store_kernel 		# mode 1 -> kernel												
+																										
+	sign_float:																							
+		lui $t4, 0x0000																					
+		addi $sp, $sp, -4				# create space in stack										    
+		sw $t4, 0($sp)																					
+		lwc1 $f1, 0($sp)				# initialize f0 with 0.0									    
+		add $sp, $sp, 4					# pop the stack												    
+		sub.s $f0, $f1, $f0				# f0 = 0 - f0												    
+		li $t2, 0 						# reset t1 to 0												    
+		j store_float																					
+																										
+        store_image:																					
+            swc1 $f0, 0($s0)																			
+            addi $s0, $s0, 4			# move to next word										        
+            j next_char																					
+        store_kernel:																					
+            swc1 $f0, 0($s1)																			
+            addi $s1, $s1, 4			# move to next word										        
+            j next_char																					
+	next_char:																							
+        addi $s4, $s4, 1																				
+		beq $t3, 0, read_image_loop																		
+		beq $t3, 1, read_kernel_loop																	
+#########################################################################################################                                                                                                    
+start_build_padded_image:                                                                               
+	la $s0, image                       # Load image adress                                             
+	la $s2, padded	                    # Load padded adress                                            
+                                                                                                        
+	la $t0, image_size		            # Load N                                                        
+	lw $t0, 0($t0)                                                                                      
+                                                                                                        
+	la $t2, value_padding		        # Load p                                                        
+	lw $t2, 0($t2)                                                                                      
+                                                                                                        
+	mul $t3, $t2, 2		                # t3 = 2p                                                       
+	add $t3, $t0, $t3	                # t3 = N + 2*p                                                  
+	mul $t3, $t3, $t2	                # t3 = (N + 2*p)*p                                              
+	add $t3, $t3, $t2	                # t3 = (N + 2*p)*p+p                                            
+                                                                                                        
+	mul $t3, $t3, 4		                # t3 = t3 * 4 bytes                                             
+	add $s2, $s2, $t3	                # move the pointers to the begin to copy                        
+                                                                                                        
+	li $t4, 0		                    # Outer loop counter                                            
+	outside_loop:                                                                                       
+		beq $t4, $t0, exit_outer    # if t4 == N -> end                                                 
+		li $t5, 0	                    # Inner loop counter                                           
+		inner_loop:                                                                                     
+			beq $t5, $t0, exit_inner                                                                    
+			lwc1 $f4, 0($s0)                                                                            
+			swc1 $f4, 0($s2)                                                                                                                                                          
+			addi $s0, $s0, 4                                                                            
+			addi $s2, $s2, 4                                                                            
+			addi $t5, $t5, 1                                                                            
+			j inner_loop                                                                                
+		exit_inner:                                                                                     
+			move $t6, $t2                                                                               
+			mul $t6, $t6, 8                                                                             
+			add $s2, $s2, $t6                                                                           
+		addi $t4, $t4, 1                                                                                
+		j outside_loop                                                                                  
+	exit_outer:                                                                                         
+        j start_build_convolved_matrix                                                                  
 #########################################################################################################
 start_build_convolved_matrix:
     # Reset pointers
@@ -371,7 +371,7 @@ validate:																								                                               
 close_file:																								                                              #
     li $v0, 16																							                                            #
     move $a0, $s6																						                                            #
-    syscall		                                                                                          #
+    syscall		                                                                                          
     j exit_program																				                                              #
 #########################################################################################################
 
