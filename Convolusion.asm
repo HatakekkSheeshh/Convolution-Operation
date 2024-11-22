@@ -359,11 +359,11 @@ validate:																								                                               
 																										                                                    #    
     # Calculate output size																				                                      #
     mul $t4, $t2, 2         # 2p																		                                    #
-    add $t4, $t0, $t4       # N + 2p																	                                  #
-    sub $t4, $t4, $t1       # N + 2p - M																                                #
-    div $t4, $t3            # (N + 2p - M)/s															                              #
-    add $t4, $t4, 1         # ((N + 2p - M)/s) + 1														                          #
-    j read_image                                                                                        #
+    add $t4, $t0, $t4       # N + 2p																	                                  
+    sub $t4, $t4, $t1       # N + 2p - M																                                
+    div $t4, $t3            # (N + 2p - M)/s															                              
+    add $t4, $t4, 1         # ((N + 2p - M)/s) + 1														                          
+    j read_image                                                                                        
 #########################################################################################################
 
 
