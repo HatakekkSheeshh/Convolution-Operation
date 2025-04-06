@@ -4,34 +4,34 @@
 # This code below is not optimized
 
 .data
-    buffer_read: 			.asciiz "input_matrix.txt"  
-    buffer_write:           .asciiz "output_matrix.txt"
-    buffer:	 				.space 1024    
-    buff:                   .space 1024
-    error: 					.asciiz "terminate called after throwing an instance of 'mips::file_error'\n what(): Cannot open file"
-    newline: 				.asciiz "\n"
-    implement: 				.asciiz "######################################################################################################"
+    buffer_read: 		.asciiz "input_matrix.txt"  
+    buffer_write:           	.asciiz "output_matrix.txt"
+    buffer:	 		.space 1024    
+    buff:                   	.space 1024
+    error: 			.asciiz "terminate called after throwing an instance of 'mips::file_error'\n what(): Cannot open file"
+    newline: 			.asciiz "\n"
+    implement: 			.asciiz "######################################################################################################"
 
-    image_size: 			.word 0	# N
-    kernel_size: 			.word 0	# M
-    value_padding: 			.word 0	# p
-    value_stride: 			.word 0	# s
+    image_size: 		.word 0	# N
+    kernel_size: 		.word 0	# M
+    value_padding: 		.word 0	# p
+    value_stride: 		.word 0	# s
 
-    image: 					.word 0 : 300
-    kernel:					.word 0 : 300
-    padded: 				.word 0 : 300
-    out: 					.word 0 : 300
-    new_out:                .word 0 : 300
+    image: 			.word 0 : 300
+    kernel:			.word 0 : 300
+    padded: 			.word 0 : 300
+    out: 			.word 0 : 300
+    new_out:                	.word 0 : 300
 
-    newline2:				.asciiz "\n\n"
-    space: 					.asciiz " "
-    check:                  .asciiz "Hello"
+    newline2:			.asciiz "\n\n"
+    space: 			.asciiz " "
+    check:                  	.asciiz "Hello"
 
-    num_10:                 .float 10.0    
-    num_0_5:                .float 0.05
-    zero:                   .float 0.0
-    dot:                    .asciiz "."
-    minus:                  .asciiz "-"    
+    num_10:                 	.float 10.0    
+    num_0_5:                	.float 0.05
+    zero:                   	.float 0.0
+    dot:                    	.asciiz "."
+    minus:                  	.asciiz "-"    
 .text
 .globl main
 
@@ -121,72 +121,72 @@ next_kernel_char:
     j read_kernel_loop
 #########################################################################################################
 cvt_string_float:																																										
-	seq $t2, $t1, 45					# Check if sign of the character is negtive or positive			
+	seq $t2, $t1, 45				# Check if sign of the character is negtive or positive			
 																										
 	# IEEE 754 format to stack and use lwc1																
     lui $t6, 0x0000 					# we cannot directly set a register to float					
-	addi $sp, $sp, -4					# create space in stack											
+	addi $sp, $sp, -4				# create space in stack											
 	sw $t6, 0($sp)																						
-	lwc1 $f0, 0($sp)					# initialize f0 with 0.0										
-	addi $sp, $sp, 4					# pop the stack												    
+	lwc1 $f0, 0($sp)				# initialize f0 with 0.0										
+	addi $sp, $sp, 4				# pop the stack												    
                                                                                                         
 	lui $t6, 0x4120																						
 	addi $sp, $sp, -4																					
 	sw $t6, 0($sp)																						
-	lwc1 $f1, 0($sp)					# initialize f1 with 10.0, float for whole number				
+	lwc1 $f1, 0($sp)				# initialize f1 with 10.0, float for whole number				
     addi $sp, $sp, 4                                                                                    
                                                                                                         
 	lui $t6, 0x4120																						
 	addi $sp, $sp, -4																					
 	sw $t6, 0($sp)																						
-	lwc1 $f2, 0($sp)					# initialize f1 with 10.0, float for decimal part				
+	lwc1 $f2, 0($sp)				# initialize f1 with 10.0, float for decimal part				
 	addi $sp, $sp, 4																					
                                                                                                         
 	beqz $t2, before_point 				# if the number is positive skip below line						
 	addi $s4, $s4, 1																					
 	before_point:																						
-		lb $t1, 0($s4) 					# load current character										
+		lb $t1, 0($s4) 				# load current character										
 		beq $t1, 0, store_float			# NULL															
 		beq $t1, 10, store_float		# LINE FEED														
 		beq $t1, 13, store_float		# CARRIAGE RETURN												
 		beq $t1, 32, store_float		# SPACE															
 		beq $t1, '.', after_point		# handle decimal after point									
 																										
-		sub $t1, $t1, '0'				# Convert ASCII to integer										
+		sub $t1, $t1, '0'			# Convert ASCII to integer										
 		addi $sp, $sp, -4																				
 		sw $t1, 0($sp)																					
-		lwc1 $f3, 0($sp) 				# Change integer to float 										
-		addi $sp, $sp, 4				# pop															
-		cvt.s.w $f3, $f3				# confirmly get the float from word							
+		lwc1 $f3, 0($sp) 			# Change integer to float 										
+		addi $sp, $sp, 4			# pop															
+		cvt.s.w $f3, $f3			# confirmly get the float from word							
 																										
-		mul.s $f0, $f0, $f1				# multiply with 10(shift left)									
+		mul.s $f0, $f0, $f1			# multiply with 10(shift left)									
 		add.s $f0, $f0, $f3 			# add new digit													
 																										
-		addi $s4, $s4, 1				# move to new character											
+		addi $s4, $s4, 1			# move to new character											
 		j before_point																					
 #########################################################################################################	
 	after_point:																																										
-		addi $s4, $s4, 1				# move to new character											
+		addi $s4, $s4, 1			# move to new character											
         j handle_point																					
 	handle_point:																						
-		lb $t1, 0($s4)					# load current character										
+		lb $t1, 0($s4)				# load current character										
 		beq $t1, 0, store_float			# NULL															
 		beq $t1, 10, store_float		# LINE FEED														
 		beq $t1, 13, store_float		# CARRIAGE RETURN												
 		beq $t1, 32, store_float		# SPACE															
 																										
-		sub $t1, $t1, '0'				# Convert ASCII to integer										
+		sub $t1, $t1, '0'			# Convert ASCII to integer										
 		add $sp, $sp, -4																				
 		sw $t1, 0($sp)																					
-		lwc1 $f3, 0($sp)				# Convert integer to float										
-		addi $sp, $sp, 4				# pop															
-		cvt.s.w $f3, $f3				# confirmly get the float from word								
+		lwc1 $f3, 0($sp)			# Convert integer to float										
+		addi $sp, $sp, 4			# pop															
+		cvt.s.w $f3, $f3			# confirmly get the float from word								
 																										
-		div.s $f3, $f3, $f1				# shift right to make number after point						
-		mul.s $f1, $f1, $f2				# multiply with 10												
-		add.s $f0, $f0, $f3				# add new digit													
+		div.s $f3, $f3, $f1			# shift right to make number after point						
+		mul.s $f1, $f1, $f2			# multiply with 10												
+		add.s $f0, $f0, $f3			# add new digit													
 																										
-		addi $s4, $s4, 1				# move to new character											
+		addi $s4, $s4, 1			# move to new character											
 		j handle_point																					
 #########################################################################################################
 	# store the result in image/kernel matrix															
@@ -197,21 +197,21 @@ cvt_string_float:
 																										
 	sign_float:																							
 		lui $t4, 0x0000																					
-		addi $sp, $sp, -4				# create space in stack										    
+		addi $sp, $sp, -4			# create space in stack										    
 		sw $t4, 0($sp)																					
-		lwc1 $f1, 0($sp)				# initialize f0 with 0.0									    
-		add $sp, $sp, 4					# pop the stack												    
-		sub.s $f0, $f1, $f0				# f0 = 0 - f0												    
-		li $t2, 0 						# reset t1 to 0												    
+		lwc1 $f1, 0($sp)			# initialize f0 with 0.0									    
+		add $sp, $sp, 4				# pop the stack												    
+		sub.s $f0, $f1, $f0			# f0 = 0 - f0												    
+		li $t2, 0 				# reset t1 to 0												    
 		j store_float																					
 																										
         store_image:																					
             swc1 $f0, 0($s0)																			
-            addi $s0, $s0, 4			# move to next word										        
+            addi $s0, $s0, 4				# move to next word										        
             j next_char																					
         store_kernel:																					
             swc1 $f0, 0($s1)																			
-            addi $s1, $s1, 4			# move to next word										        
+            addi $s1, $s1, 4				# move to next word										        
             j next_char																					
 	next_char:																							
         addi $s4, $s4, 1																				
@@ -219,27 +219,27 @@ cvt_string_float:
 		beq $t3, 1, read_kernel_loop																	
 #########################################################################################################                                                                                                    
 start_build_padded_image:                                                                               
-	la $s0, image                       # Load image adress                                             
-	la $s2, padded	                    # Load padded adress                                            
+	la $s0, image                       		# Load image adress                                             
+	la $s2, padded	                    		# Load padded adress                                            
                                                                                                         
-	la $t0, image_size		            # Load N                                                        
+	la $t0, image_size		            	# Load N                                                        
 	lw $t0, 0($t0)                                                                                      
                                                                                                         
-	la $t2, value_padding		        # Load p                                                        
+	la $t2, value_padding		        	# Load p                                                        
 	lw $t2, 0($t2)                                                                                      
                                                                                                         
-	mul $t3, $t2, 2		                # t3 = 2p                                                       
-	add $t3, $t0, $t3	                # t3 = N + 2*p                                                  
-	mul $t3, $t3, $t2	                # t3 = (N + 2*p)*p                                              
-	add $t3, $t3, $t2	                # t3 = (N + 2*p)*p+p                                            
+	mul $t3, $t2, 2		                	# t3 = 2p                                                       
+	add $t3, $t0, $t3	                	# t3 = N + 2*p                                                  
+	mul $t3, $t3, $t2	                	# t3 = (N + 2*p)*p                                              
+	add $t3, $t3, $t2	                	# t3 = (N + 2*p)*p+p                                            
                                                                                                         
-	mul $t3, $t3, 4		                # t3 = t3 * 4 bytes                                             
-	add $s2, $s2, $t3	                # move the pointers to the begin to copy                        
+	mul $t3, $t3, 4		                	# t3 = t3 * 4 bytes                                             
+	add $s2, $s2, $t3	                	# move the pointers to the begin to copy                        
                                                                                                         
-	li $t4, 0		                    # Outer loop counter                                            
+	li $t4, 0		                   	# Outer loop counter                                            
 	outside_loop:                                                                                       
-		beq $t4, $t0, exit_outer    # if t4 == N -> end                                                 
-		li $t5, 0	                    # Inner loop counter                                           
+		beq $t4, $t0, exit_outer    		# if t4 == N -> end                                                 
+		li $t5, 0	                    	# Inner loop counter                                           
 		inner_loop:                                                                                     
 			beq $t5, $t0, exit_inner                                                                    
 			lwc1 $f4, 0($s0)                                                                            
@@ -259,45 +259,45 @@ start_build_padded_image:
 #########################################################################################################
 start_build_convolved_matrix:
     # Reset pointers
-    la $s2, padded          # Load padded matrix address
-    la $s1, kernel          # Load kernel matrix address
-    la $s3, out             # Load output matrix address
+    la $s2, padded         				# Load padded matrix address
+    la $s1, kernel          				# Load kernel matrix address
+    la $s3, out             				# Load output matrix address
 
     # Load parameters
-    lw $t0, image_size      # N
-    lw $t1, kernel_size     # M
-    lw $t2, value_padding   # p
-    lw $t3, value_stride    # s
+    lw $t0, image_size      				# N
+    lw $t1, kernel_size     				# M
+    lw $t2, value_padding   				# p
+    lw $t3, value_stride    				# s
 
     # Calculate padded size
-    mul $t4, $t2, 2         # 2p
-    add $t4, $t0, $t4       # N + 2p
+    mul $t4, $t2, 2         				# 2p
+    add $t4, $t0, $t4       				# N + 2p
     
     # Calculate output size
-    sub $t5, $t4, $t1       # (N + 2p) - M
-    div $t5, $t3            # ((N + 2p) - M) / s
+    sub $t5, $t4, $t1       				# (N + 2p) - M
+    div $t5, $t3            				# ((N + 2p) - M) / s
     mflo $t5
-    addi $t5, $t5, 1        # ((N + 2p) - M) / s + 1
+    addi $t5, $t5, 1        				# ((N + 2p) - M) / s + 1
     
     # Initialize row counter for output
-    li $t6, 0               # i = 0
+    li $t6, 0              				# i = 0
 convolution_row_loop:
-    bge $t6, $t5, end_convolution    # if i >= output_size, end
+    bge $t6, $t5, end_convolution    			# if i >= output_size, end
     
     # Initialize column counter for output
-    li $t7, 0               # j = 0
+    li $t7, 0               				# j = 0
 convolution_col_loop:
-    bge $t7, $t5, next_conv_row    # if j >= output_size, next row
+    bge $t7, $t5, next_conv_row    			# if j >= output_size, next row
 
     # Calculate starting position in padded matrix
-    mul $t8, $t6, $t3       # i * stride
-    mul $t9, $t7, $t3       # j * stride
+    mul $t8, $t6, $t3       				# i * stride
+    mul $t9, $t7, $t3       				# j * stride
     
     # Initialize sum for convolution
-    lui $t0, 0x0000         # Load 0.0 into stack
+    lui $t0, 0x0000         				# Load 0.0 into stack
     addi $sp, $sp, -4
     sw $t0, 0($sp)
-    lwc1 $f0, 0($sp)        # f0 = sum = 0.0
+    lwc1 $f0, 0($sp)        				# f0 = sum = 0.0
     addi $sp, $sp, 4
 
     # Reset kernel position
@@ -350,15 +350,15 @@ next_conv_row:
 end_convolution:
     j print_params          # Move to printing results        
 #########################################################################################################
-validate:																								                                                #
-    # Load sizes																						                                            #
-    lw $t0, image_size																					                                        #
-    lw $t1, kernel_size																					                                        #
-    lw $t2, value_padding																				                                        #
-    lw $t3, value_stride																				                                        #
-																										                                                    #    
-    # Calculate output size																				                                      #
-    mul $t4, $t2, 2         # 2p																		                                    #
+validate:																								                                                
+    # Load sizes																						                                            
+    lw $t0, image_size																					                                        
+    lw $t1, kernel_size																					                                        
+    lw $t2, value_padding																				                                        
+    lw $t3, value_stride																				                                        
+																										                                                     
+    # Calculate output size																				                                      
+    mul $t4, $t2, 2         # 2p																		                                    
     add $t4, $t0, $t4       # N + 2p																	                                  
     sub $t4, $t4, $t1       # N + 2p - M																                                
     div $t4, $t3            # (N + 2p - M)/s															                              
@@ -368,134 +368,134 @@ validate:																								                                               
 
 
 #########################################################################################################
-close_file:																								                                              #
-    li $v0, 16																							                                            #
-    move $a0, $s6																						                                            #
+close_file:																								                                              
+    li $v0, 16																							                                            
+    move $a0, $s6																						                                            
     syscall		                                                                                          
-    j exit_program																				                                              #
+    j exit_program																				                                              
 #########################################################################################################
 
 #########################################################################################################
-print_params:																							                                              #
-    # Print N																							                                              #
-    li $v0, 1																							                                              #
-    lw $a0, image_size																					                                        #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, space																						                                            #
-    syscall																								                                              #
-																										                                                    #
-    # Print M																							                                              #
-    li $v0, 1																							                                              #
-    lw $a0, kernel_size																					                                        #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, space																						                                            #
-    syscall																								                                              #
-																										                                                    #
-    # Print p																							                                              #
-    li $v0, 1																							                                              #
-    lw $a0, value_padding																				                                        #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, space																						                                            #
-    syscall																								                                              #
-																										                                                    #
-    # Print s																							                                              #
-    li $v0, 1																							                                              #
-    lw $a0, value_stride																				                                        #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
+print_params:																							                                              
+    # Print N																							                                              
+    li $v0, 1																							                                              
+    lw $a0, image_size																					                                        
+    syscall																								                                              
+																										                                             
+    li $v0, 4																							                                              
+    la $a0, space																						                                            
+    syscall																								                                              
+																										                                                    
+    # Print M																							                                              
+    li $v0, 1																							                                              
+    lw $a0, kernel_size																					                                        
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, space																						                                            
+    syscall																								                                              
+																										                                                    
+    # Print p																							                                              
+    li $v0, 1																							                                              
+    lw $a0, value_padding																				                                        
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, space																						                                            
+    syscall																								                                              
+																										                                                    
+    # Print s																							                                              
+    li $v0, 1																							                                              
+    lw $a0, value_stride																				                                        
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
 #########################################################################################################
-print_matrices:																							                                            #
-    la $s0, image      # Reset image pointer															                              #
-    la $s1, kernel     # Reset kernel pointer															                              #
-																										                                                    #
-    # Print separator																					                                          #
-    li $v0, 4																							                                              #
-    la $a0, implement																					                                          #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
+print_matrices:																							                                            
+    la $s0, image      # Reset image pointer															                              
+    la $s1, kernel     # Reset kernel pointer															                              
+																										                                                    
+    # Print separator																					                                          
+    li $v0, 4																							                                              
+    la $a0, implement																					                                          
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
 #########################################################################################################
-    # Print image matrix																				                                        #
-    lw $t0, image_size																					                                        #
-    mul $t0, $t0, $t0  # N*N elements																	                                  #
-    li $t1, 0          # Counter																	  	                                  #
-    li $t2, 0          # Counter until N																                                #
-    lw $t3, image_size																					                                        #
-print_image_loop:																						                                            #
-    bge $t1, $t0, print_kernel_header																	                                  #
-    bge $t2, $t3, print_newline_image																	                                  #
-    j print_image																						                                            #
-print_newline_image:																					                                          #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
-    li $t2, 0       #reset $t2																			                                    #
-    j print_image_loop																					                                        #
-																										                                                    #
-print_image:																							                                              #
-    li $v0, 2																							                                              #
-    lwc1 $f12, 0($s0)																					                                          #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, space																						                                            #
-    syscall																								                                              #
-																										                                                    #
-    addi $s0, $s0, 4																					                                          #
-    addi $t1, $t1, 1																					                                          #
-    addi $t2, $t2, 1																					                                          #
-    j print_image_loop																					                                        #
+    # Print image matrix																				                                        
+    lw $t0, image_size																					                                        
+    mul $t0, $t0, $t0  # N*N elements																	                                  
+    li $t1, 0          # Counter																	  	                                  
+    li $t2, 0          # Counter until N																                                
+    lw $t3, image_size																					                                        
+print_image_loop:																						                                            
+    bge $t1, $t0, print_kernel_header																	                                  
+    bge $t2, $t3, print_newline_image																	                                  
+    j print_image																						                                            
+print_newline_image:																					                                          
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
+    li $t2, 0       #reset $t2																			                                    
+    j print_image_loop																					                                        
+																										                                                    
+print_image:																							                                              
+    li $v0, 2																							                                              
+    lwc1 $f12, 0($s0)																					                                          
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, space																						                                            
+    syscall																								                                             
+																										                                                    
+    addi $s0, $s0, 4																					                                          
+    addi $t1, $t1, 1																					                                          
+    addi $t2, $t2, 1																					                                          
+    j print_image_loop																					                                        
 #########################################################################################################
-print_kernel_header:																					                                          #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
-																										                                                    #
-    # Print kernel matrix																				                                        #
-    lw $t0, kernel_size																					                                        #
-    mul $t0, $t0, $t0  # M*M elements																	                                  #
-    li $t1, 0          # Counter																		                                    #
-    li $t2, 0          # Counter until M																                                #
-    lw $t3, kernel_size																					                                        #
-print_kernel_loop:																						                                          #
-    bge $t1, $t0, print_check_padding																                                    #
-    bge $t2, $t3, print_newline_kernel																	                                #
-    j print_kernal																						                                          #
-print_newline_kernel:																					                                          #
-    li $v0, 4																							                                              #
-    la $a0, newline																						                                          #
-    syscall																								                                              #
-    li $t2, 0																							                                              #
-    j print_kernel_loop																					                                        #
-																										                                                    #
-print_kernal:																							                                              #
-	li $v0, 2																							                                                #
-    lwc1 $f12, 0($s1)																					                                          #
-    syscall																								                                              #
-																										                                                    #
-    li $v0, 4																							                                              #
-    la $a0, space																						                                            #  
-    syscall																								                                              #
-																										                                                    #
-    addi $s1, $s1, 4																					                                          #  
-    addi $t1, $t1, 1																					                                          #
-    addi $t2, $t2, 1																					                                          #
-    j print_kernel_loop																					                                        #
+print_kernel_header:																					                                          
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
+																										                                                 
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
+																										                                                    
+    # Print kernel matrix																				                                        
+    lw $t0, kernel_size																					                                        
+    mul $t0, $t0, $t0  # M*M elements																	                                  
+    li $t1, 0          # Counter																		                                    
+    li $t2, 0          # Counter until M																                                
+    lw $t3, kernel_size																					                                        
+print_kernel_loop:																						                                          
+    bge $t1, $t0, print_check_padding																                                    
+    bge $t2, $t3, print_newline_kernel																	                                
+    j print_kernal																						                                          
+print_newline_kernel:																					                                          
+    li $v0, 4																							                                              
+    la $a0, newline																						                                          
+    syscall																								                                              
+    li $t2, 0																							                                              
+    j print_kernel_loop																					                                        
+																										                                                    
+print_kernal:																							                                              
+	li $v0, 2																							                                                
+    lwc1 $f12, 0($s1)																					                                          
+    syscall																								                                              
+																										                                                    
+    li $v0, 4																							                                              
+    la $a0, space																						                                              
+    syscall																								                                              
+																										                                                    
+    addi $s1, $s1, 4																					                                          
+    addi $t1, $t1, 1																					                                          
+    addi $t2, $t2, 1																					                                          
+    j print_kernel_loop																					                                        
 #########################################################################################################
                                                                                                         #
 print_check_padding:                                                                                    #
@@ -601,7 +601,7 @@ file_error:
                                     #                               #
                                     #                               #
                                     #     f0 set for float          #
-                                    #      f1 set for int of float  #
+                                    #     f1 set for int of float   #
                                     #                               #
                                     #                               #
                                     #################################                        
