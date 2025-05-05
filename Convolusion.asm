@@ -25,7 +25,6 @@
 
     newline2:			.asciiz "\n\n"
     space: 			.asciiz " "
-    check:                  	.asciiz "Hello"
 
     num_10:                 	.float 10.0    
     num_0_5:                	.float 0.05
