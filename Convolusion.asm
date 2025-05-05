@@ -23,6 +23,7 @@
     out: 			.word 0 : 300
     new_out:                	.word 0 : 300
 
+    newline: 			.asciiz "\n"
     newline2:			.asciiz "\n\n"
     space: 			.asciiz " "
 
